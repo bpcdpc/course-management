@@ -1,0 +1,114 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id Int [pk, increment]
+  password String [not null, default: '0000']
+  name String [not null]
+  email String [unique, not null]
+  phone String [not null]
+  role Role [not null, default: 'STUDENT']
+  createdAt DateTime [default: `now()`, not null]
+  deletedAt DateTime
+  activated Boolean [not null, default: false]
+  professor Professor
+  student Student
+}
+
+Table Professor {
+  id Int [pk]
+  user User [not null]
+  idNumber String [unique, not null]
+  courses Course [not null]
+}
+
+Table Student {
+  id Int [pk]
+  user User [not null]
+  idNumber String [unique, not null]
+  enrollments Enrollment [not null]
+}
+
+Table Course {
+  id Int [pk, increment]
+  title String [not null]
+  courseType CourseType [not null]
+  year Int [not null]
+  semesterType SemesterType [not null]
+  credits Int [not null]
+  capacity Int [not null, default: 5]
+  createdAt DateTime [default: `now()`, not null]
+  timeTables TimeTable [not null]
+  professorId Int [not null]
+  professor Professor [not null]
+  enrolled Enrollment [not null]
+}
+
+Table TimeTable {
+  id Int [pk, increment]
+  dayOfWeek DayOfWeek [not null]
+  hour Int [not null]
+  courseId Int [not null]
+  course Course [not null]
+
+  indexes {
+    (courseId, dayOfWeek, hour) [unique]
+  }
+}
+
+Table Enrollment {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  studentId Int [not null]
+  student Student [not null]
+  courseId Int [not null]
+  course Course [not null]
+
+  indexes {
+    (studentId, courseId) [unique]
+  }
+}
+
+Enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+}
+
+Enum CourseType {
+  MAJOR_FOUNDATION
+  MAJOR_REQUIRED
+  MAJOR_ELECTIVE
+  GENERAL_REQUIRED
+  GENERAL_ELECTIVE
+  FREE_ELECTIVE
+  TEACHING_PROFESSION
+}
+
+Enum SemesterType {
+  FIRST_SEMESTER
+  SECOND_SEMESTER
+  SUMMER_SESSION
+  WINTER_SESSION
+}
+
+Enum Role {
+  ADMIN
+  PROFESSOR
+  STUDENT
+}
+
+Ref: Professor.id - User.id
+
+Ref: Student.id - User.id
+
+Ref: Course.professorId > Professor.id
+
+Ref: TimeTable.courseId > Course.id [delete: Cascade]
+
+Ref: Enrollment.studentId > Student.id
+
+Ref: Enrollment.courseId > Course.id
