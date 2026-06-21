@@ -19,6 +19,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { FindUsersDto } from './dto/find-users.dto';
+import { ActivatedGuard } from '../auth/guards/activated.guard';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -28,7 +30,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiOperation({ summary: '[관리자] 회원 등록' })
-  @UseGuards(RolesGuard)
+  @UseGuards(ActivatedGuard, RolesGuard)
   @Roles('ADMIN')
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -36,7 +38,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: '[관리자] 회원 목록 조회 ' })
-  @UseGuards(RolesGuard)
+  @UseGuards(ActivatedGuard, RolesGuard)
   @Roles('ADMIN')
   @Get()
   findAll(@Query() findUsersDto: FindUsersDto) {
@@ -44,12 +46,14 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: '[회원] 내 정보 조회' })
+  @UseGuards(ActivatedGuard)
   @Get('me')
   findMe(@CurrentUser('id') userId: number) {
     return this.usersService.findOne(userId);
   }
 
   @ApiOperation({ summary: '[회원] 내 정보 수정' })
+  @UseGuards(ActivatedGuard)
   @Patch('me')
   updateMe(
     @CurrentUser('id') userId: number,
@@ -64,8 +68,17 @@ export class UsersController {
   //   return this.usersService.remove(userId);
   // }
 
+  @ApiOperation({ summary: '[회원] 비밀번호 변경' })
+  @Patch('me/password')
+  changePassword(
+    @CurrentUser('id') userId: number,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.changePassword(userId, updatePasswordDto);
+  }
+
   @ApiOperation({ summary: '[관리자] 특정 회원 조회' })
-  @UseGuards(RolesGuard)
+  @UseGuards(ActivatedGuard, RolesGuard)
   @Roles('ADMIN')
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
@@ -73,7 +86,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: '[관리자] 특정 회원 정보 수정' })
-  @UseGuards(RolesGuard)
+  @UseGuards(ActivatedGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id')
   updateByAdmin(
@@ -84,7 +97,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: '[관리자] 특정 회원 강제 탈퇴' })
-  @UseGuards(RolesGuard)
+  @UseGuards(ActivatedGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
   removeByAdmin(@Param('id', ParseIntPipe) id: number) {

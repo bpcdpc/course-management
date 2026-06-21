@@ -9,15 +9,16 @@
 
 ## User
 
-| 권한   | Method | Endpoint     | 설명                                          |
-| ------ | ------ | ------------ | --------------------------------------------- |
-| 관리자 | POST   | `/users`     | 회원 등록 (idNumber, 초기비번 0000 자동 생성) |
-| 관리자 | GET    | `/users`     | 회원 목록 조회 (쿼리: `role` 필터)            |
-| 회원   | GET    | `/users/me`  | 내 정보 조회                                  |
-| 회원   | PATCH  | `/users/me`  | 내 정보 수정 (name, phone, email)             |
-| 관리자 | GET    | `/users/:id` | 특정 회원 조회                                |
-| 관리자 | PATCH  | `/users/:id` | 특정 회원 정보 수정                           |
-| 관리자 | DELETE | `/users/:id` | 특정 회원 강제 탈퇴 (soft delete)             |
+| 권한   | Method | Endpoint             | 설명                                                |
+| ------ | ------ | -------------------- | --------------------------------------------------- |
+| 관리자 | POST   | `/users`             | 회원 등록 (idNumber, 초기비번 0000 자동 생성)       |
+| 관리자 | GET    | `/users`             | 회원 목록 조회 (쿼리: `role` 필터)                  |
+| 회원   | GET    | `/users/me`          | 내 정보 조회                                        |
+| 회원   | PATCH  | `/users/me`          | 내 정보 수정 (name, phone, email)                   |
+| 회원   | PATCH  | `/users/me/password` | 비밀번호 변경 (최초 변경 시 activated: true로 전환) |
+| 관리자 | GET    | `/users/:id`         | 특정 회원 조회                                      |
+| 관리자 | PATCH  | `/users/:id`         | 특정 회원 정보 수정                                 |
+| 관리자 | DELETE | `/users/:id`         | 특정 회원 강제 탈퇴 (soft delete)                   |
 
 > 본인 셀프 탈퇴(`DELETE /users/me`)는 정책상 제외 — 가입처럼 탈퇴도 관리자 통제
 

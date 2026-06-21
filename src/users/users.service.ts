@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,6 +11,7 @@ import { ProfessorsService } from '../professors/professors.service';
 import { StudentsService } from '../students/students.service';
 import * as bcrypt from 'bcrypt';
 import { FindUsersDto } from './dto/find-users.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -136,6 +138,42 @@ export class UsersService {
     });
 
     return this.excludePassword(user);
+  }
+
+  // 사용자 비번 변경 서비스
+  async changePassword(userId: number, updatePasswordDto: UpdatePasswordDto) {
+    // 사용자 있는지 검사 (비번을 포함한 값을 받기 위해 기존 메쏘드 활용하지 않음)
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`${userId} 사용자를 찾을 수 없습니다.`);
+    }
+
+    // 있으면 비번 검사
+    const isMatch = await bcrypt.compare(
+      updatePasswordDto.currentPassword,
+      user.password,
+    );
+    if (!isMatch) {
+      throw new UnauthorizedException(`현재 비밀번호가 일치하지 않습니다.`);
+    }
+
+    // 있으면 입력값을 해싱
+    const hashed = await bcrypt.hash(updatePasswordDto.newPassword, 10);
+
+    // 다 통과하면 user 업데이트 1) 비번 변경 2) activation
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed, activated: true },
+    });
+
+    return {
+      ...this.excludePassword(updated),
+      message:
+        "message: '비밀번호가 변경되었습니다. 변경사항 반영을 위해 다시 로그인해주세요.',",
+    };
   }
 
   // 사용자 삭제 서비스

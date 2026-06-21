@@ -46,7 +46,12 @@ export class AuthService {
     const idNumber = user.student?.idNumber || user.professor?.idNumber;
 
     // 토큰 발급에 쓰일 인자 생성
-    const payload = { sub: user.id, role: user.role, idNumber: idNumber };
+    const payload = {
+      sub: user.id,
+      role: user.role,
+      idNumber: idNumber,
+      activated: user.activated,
+    };
 
     // access_token 을 생성해서 반환
     return { access_token: this.jwtService.sign(payload) };
@@ -75,7 +80,11 @@ export class AuthService {
     }
 
     // 토큰 발급에 쓰일 인자 생성 (학번/직번 없음)
-    const payload = { sub: user.id, role: user.role };
+    const payload = {
+      sub: user.id,
+      role: user.role,
+      activated: user.activated,
+    };
 
     return { access_token: this.jwtService.sign(payload) };
   }

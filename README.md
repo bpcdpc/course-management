@@ -1,4 +1,4 @@
-# API 명세서 — 수강신청 미니 프로젝트
+# API 명세서 (상세) — 수강신청 미니 프로젝트
 
 ## Auth
 
@@ -9,17 +9,20 @@
 
 ## User
 
-| 권한   | Method | Endpoint     | 설명           | Request                                                                                         | Response                                                      |
-| ------ | ------ | ------------ | -------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| 관리자 | POST   | `/users`     | 회원 등록      | Body: `name`(string), `email`(string), `phone`(string), `role`(enum: ADMIN\|PROFESSOR\|STUDENT) | User 객체 (password 제외) + professor/student (idNumber 포함) |
-| 관리자 | GET    | `/users`     | 회원 목록      | Query: `role`(enum, optional)                                                                   | User[]                                                        |
-| 회원   | GET    | `/users/me`  | 내 정보        | -                                                                                               | User 객체                                                     |
-| 회원   | PATCH  | `/users/me`  | 내 정보 수정   | Body: `name?`, `email?`, `phone?` (모두 optional)                                               | 수정된 User 객체                                              |
-| 관리자 | GET    | `/users/:id` | 특정 회원 조회 | Path: `id`(number)                                                                              | User 객체                                                     |
-| 관리자 | PATCH  | `/users/:id` | 특정 회원 수정 | Path: `id`(number), Body: `name?`, `email?`, `phone?`                                           | 수정된 User 객체                                              |
-| 관리자 | DELETE | `/users/:id` | 강제 탈퇴      | Path: `id`(number)                                                                              | soft-deleted User 객체                                        |
+| 권한   | Method | Endpoint             | 설명           | Request                                                                                         | Response                                                      |
+| ------ | ------ | -------------------- | -------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 관리자 | POST   | `/users`             | 회원 등록      | Body: `name`(string), `email`(string), `phone`(string), `role`(enum: ADMIN\|PROFESSOR\|STUDENT) | User 객체 (password 제외) + professor/student (idNumber 포함) |
+| 관리자 | GET    | `/users`             | 회원 목록      | Query: `role`(enum, optional)                                                                   | User[]                                                        |
+| 회원   | GET    | `/users/me`          | 내 정보        | -                                                                                               | User 객체                                                     |
+| 회원   | PATCH  | `/users/me`          | 내 정보 수정   | Body: `name?`, `email?`, `phone?` (모두 optional)                                               | 수정된 User 객체                                              |
+| 회원   | PATCH  | `/users/me/password` | 비밀번호 변경  | Body: `currentPassword`(string), `newPassword`(string, 최소 10자)                               | 변경된 User 객체 (password 제외)                              |
+| 관리자 | GET    | `/users/:id`         | 특정 회원 조회 | Path: `id`(number)                                                                              | User 객체                                                     |
+| 관리자 | PATCH  | `/users/:id`         | 특정 회원 수정 | Path: `id`(number), Body: `name?`, `email?`, `phone?`                                           | 수정된 User 객체                                              |
+| 관리자 | DELETE | `/users/:id`         | 강제 탈퇴      | Path: `id`(number)                                                                              | soft-deleted User 객체                                        |
 
-> 본인 셀프 탈퇴(`DELETE /users/me`)는 정책상 제외 — 가입처럼 탈퇴도 관리자 통제
+> - 본인 셀프 탈퇴(`DELETE /users/me`)는 정책상 제외 — 가입처럼 탈퇴도 관리자 통제.
+> - 회원가입 시 초기 비밀번호는 `"0000"`으로 고정 생성되며 `activated: false` 상태. `PATCH /users/me/password`로 비밀번호를 변경해야 `activated: true`로 전환되고, 그래야 다른 API(로그인/비밀번호 변경 제외) 접근이 가능함 (`ActivatedGuard`).
+> - 관리자 계정은 시딩 시 `activated: true`로 생성되어 이 제약에서 제외됨.
 
 ## Course
 

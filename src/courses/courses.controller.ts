@@ -22,10 +22,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FindCoursesDto } from './dto/find-courses.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { ActivatedGuard } from '../auth/guards/activated.guard';
 
 @ApiTags('courses')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ActivatedGuard)
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}

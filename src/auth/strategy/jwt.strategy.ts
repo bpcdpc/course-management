@@ -19,6 +19,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // 토큰이 유효하면 실행되는 메서드 : 반환값을 Request 객체(req.user)에 담아줌.
   async validate(payload: any) {
-    return { id: payload.sub, role: payload.role, idNumber: payload.idNumber };
+    return {
+      id: payload.sub,
+      role: payload.role,
+      idNumber: payload.idNumber,
+      activated: payload.activated,
+    };
   }
 }
