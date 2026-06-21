@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 요일
+enum DayOfWeek {
+  MON // 월
+  TUE // 화
+  WED // 수
+  THU // 목
+  FRI // 금
+}
+
+// 이수 구분
+enum CourseType {
+  MAJOR_FOUNDATION // 전공기초
+  MAJOR_REQUIRED // 전공필수
+  MAJOR_ELECTIVE // 전공선택
+  GENERAL_REQUIRED // 교양필수
+  GENERAL_ELECTIVE // 교양선택
+  FREE_ELECTIVE // 일반선택
+  TEACHING_PROFESSION // 교직
+}
+
+// 학기 구분
+enum SemesterType {
+  FIRST_SEMESTER // 1학기
+  SECOND_SEMESTER // 2학기
+  SUMMER_SESSION // 여름학기
+  WINTER_SESSION // 겨울학기
+}
+
+// 출결 상태
+// [구현 제외] Attendance 모듈은 이번 범위에서 제외
+// enum AttendanceStatus {
+//   ATTENDANT // 출결
+//   ABSENT // 결석
+//   LATE // 지각
+//   EARLY_LEAVE // 조퇴
+// }
+
+// 사용자 역할
+enum Role {
+  ADMIN
+  PROFESSOR
+  STUDENT
+}
+
+// 사용자
+model User {
+  id        Int       @id @default(autoincrement())
+  password  String    @default("0000")
+  name      String
+  email     String    @unique
+  phone     String
+  role      Role      @default(STUDENT)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // Soft Delete 적용 : 학번, 직번, 이메일, id 등 unique한 값들이 재사용되는 것을 막기위해 적용
+  activated Boolean @default(false) // 초기 비번을 바꾼 사용자만이 시스템을 이용할 수 있다. 관리자는 초기에 true 로 시딩한다.
+
+  professor Professor?
+  student   Student?
+}
+
+// 교수
+model Professor {
+  id       Int      @id // PK, FK
+  user     User     @relation(fields: [id], references: [id]) // 교수 : 이용자
+  idNumber String   @unique
+  courses  Course[] // 교수 : 강의
+}
+
+// 학생
+model Student {
+  id          Int          @id // PK, FK
+  user        User         @relation(fields: [id], references: [id]) // 학생 : 이용자
+  idNumber    String       @unique
+  enrollments Enrollment[] @relation("StudentEnrollments") // 학생 : 수강 신청
+
+  // [구현 제외] Attendance 모듈은 이번 범위에서 제외
+  // attendances Attendance[] @relation("StudentAttendances") // 학생 : 출결
+}
+
+// 강의
+model Course {
+  id           Int          @id @default(autoincrement())
+  title        String
+  courseType   CourseType
+  year         Int
+  semesterType SemesterType
+  credits      Int // 값은 1,2,3,4 중 한개여야 한다. (애플리케이션 레벨에서 검증)
+  capacity     Int          @default(5)
+  createdAt    DateTime     @default(now())
+  timeTables   TimeTable[] // 강의 : 시간
+  professorId  Int // FK
+  professor    Professor    @relation(fields: [professorId], references: [id]) // 강의 : 교수
+  enrolled     Enrollment[] @relation("CourseEnrolled") // 수강 신청 : 학생
+
+  // [구현 제외] Attendance 모듈은 이번 범위에서 제외
+  // attended     Attendance[] @relation("CourseAttended") // 출결 : 학생
+}
+
+// 일시
+// hours Int[]를 개별 교시로 쪼갬. 배열은 비교가 너무 힘들어짐.
+model TimeTable {
+  id        Int       @id @default(autoincrement())
+  dayOfWeek DayOfWeek
+  hour      Int // 교시 (1교시, 2교시 ...)
+  courseId  Int // FK
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade) // 일시 : 강의
+
+  @@unique([courseId, dayOfWeek, hour]) // 같은 강의 내 동일 교시 중복 등록 방지
+  @@index([dayOfWeek, hour]) // 겹침 조회용 인덱스
+}
+
+// 수강 신청
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  studentId Int // FK
+  student   Student  @relation("StudentEnrollments", fields: [studentId], references: [id]) // 학생 : 수강 신청
+  courseId  Int // FK
+  course    Course   @relation("CourseEnrolled", fields: [courseId], references: [id]) // 학생 : 강의
+
+  @@unique([studentId, courseId]) // 중복 신청 방지
+}
+
+// 출결
+// [구현 제외] 이번 범위에서는 Attendance 모듈을 구현하지 않음
+// model Attendance {
+//   id        Int              @id @default(autoincrement())
+//   createdAt DateTime         @default(now())
+//   date      DateTime         @default(now()) @db.Date // 시간 정보를 날리고 날짜만 저장
+//   status    AttendanceStatus
+//   studentId Int // FK
+//   student   Student          @relation("StudentAttendances", fields: [studentId], references: [id]) // 출결 : 학생
+//   courseId  Int // FK
+//   course    Course           @relation("CourseAttended", fields: [courseId], references: [id]) // 출결 : 강의
+//
+//   @@unique([studentId, courseId, date]) // 같은 학생/과목/날짜 중복 출결 방지
+// }
