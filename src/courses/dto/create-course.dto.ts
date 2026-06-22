@@ -44,9 +44,9 @@ export class CreateCourseDto {
   @Max(4)
   credits: number;
 
-  @ApiProperty({ example: 50 })
+  @ApiProperty({ example: 10 })
   @IsInt()
-  @Min(3)
+  @Min(1)
   capacity: number;
 
   @ApiProperty({
